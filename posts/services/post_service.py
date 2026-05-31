@@ -25,15 +25,19 @@ def _annotated_qs():
     return Post.objects.annotate(
         upvote_count=Count("votes", filter=Q(votes__vote_type=Vote.UPVOTE)),
         downvote_count=Count("votes", filter=Q(votes__vote_type=Vote.DOWNVOTE)),
-    ).select_related("author", "minister")
+    ).select_related("author", "minister", "department")
 
 
 def create_post(author, data: dict) -> Post:
+    department = data.get("department")
+    minister = data.get("minister") or (department.minister if department else None)
+
     post = Post(
         author=author,
         heading=data["heading"],
         content=data["content"],
-        minister=data.get("minister"),
+        department=department,
+        minister=minister,
         media_key=data.get("media_key"),
         media_type=data.get("media_type") or "",
     )
@@ -93,15 +97,16 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
     # Pool A: all published posts sorted by cached_upvote_count
     pool_a = list(
         published_qs
-        .order_by("-cached_upvote_count", "-created_at")[:FEED_POOL_SIZE]
+        .order_by("-cached_upvote_count")[:FEED_POOL_SIZE]
     )
 
     # Pool B: published posts tagged to followed ministers sorted by cached_upvote_count
-    pool_b = list(
-        published_qs
-        .filter(minister_id__in=followed_ministers)
-        .order_by("-cached_upvote_count", "-created_at")[:FEED_POOL_SIZE]
-    ) if followed_ministers else []
+    # pool_b = list(
+    #     published_qs
+    #     .filter(minister_id__in=followed_ministers)
+    #     .order_by("-cached_upvote_count", "-created_at")[:FEED_POOL_SIZE]
+    # ) if followed_ministers else []
+    pool_b = []
 
     # Merge + deduplicate, preserving objects
     seen_ids = set()
@@ -112,8 +117,8 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
             merged.append(post)
 
     # Seeded shuffle so same user gets consistent ordering per page number
-    rng = random.Random(user.id + page * 9973)
-    rng.shuffle(merged)
+    # rng = random.Random(user.id + page * 9973)
+    # rng.shuffle(merged)
 
     # Paginate
     start = (page - 1) * page_size

@@ -37,8 +37,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-def _generate_tag(name: str, dept: str) -> str:
-    return f"@{slugify(name)}_{slugify(dept)}"
+def _generate_tag(name: str) -> str:
+    return f"@{slugify(name).replace('-', '')}"
 
 
 class Minister(models.Model):
@@ -50,11 +50,26 @@ class Minister(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        self.tag = _generate_tag(self.name, self.dept)
+        self.tag = _generate_tag(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.tag})"
+
+
+class Department(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    minister = models.ForeignKey(
+        Minister,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="departments",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 
 class MinisterFollow(models.Model):

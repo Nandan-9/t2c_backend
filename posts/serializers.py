@@ -17,6 +17,11 @@ class MinisterTagSerializer(serializers.Serializer):
     tag = serializers.CharField()
 
 
+class DepartmentTagSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
 class CommentSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
 
@@ -30,6 +35,8 @@ class PostSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
     minister = MinisterTagSerializer(read_only=True)
     minister_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    department = DepartmentTagSerializer(read_only=True)
+    department_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     media_key = serializers.CharField(required=False, allow_null=True)
     media_url = serializers.SerializerMethodField()
     upvote_count = serializers.SerializerMethodField()
@@ -40,7 +47,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            "id", "author", "minister", "minister_id",
+            "id", "author", "minister", "minister_id", "department", "department_id",
             "heading", "content", "status",
             "media_url", "media_type", "media_key",
             "upvote_count", "downvote_count", "user_vote",
