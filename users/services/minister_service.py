@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 
 from users.models import Minister, MinisterFollow, User
 
@@ -33,14 +34,22 @@ def get_tags(query: str | None) -> list[dict]:
 
 
 def get_all_ministers():
-    return Minister.objects.all().order_by("name")
+    return (
+        Minister.objects
+        .annotate(total_posts=Count("tagged_posts"))
+        .prefetch_related("departments")
+        .order_by("name")
+    )
 
 
 def get_minister_by_id(minister_id: int) -> Minister:
-    try:
-        return Minister.objects.get(pk=minister_id)
-    except Minister.DoesNotExist:
-        return None
+    return (
+        Minister.objects
+        .annotate(total_posts=Count("tagged_posts"))
+        .prefetch_related("departments")
+        .filter(pk=minister_id)
+        .first()
+    )
 
 
 def create_minister(data: dict) -> Minister:

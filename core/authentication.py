@@ -33,3 +33,6 @@ class JWTAuthentication(BaseAuthentication):
             raise AuthenticationFailed("User not found.")
 
         return (user, token)
+
+    def authenticate_header(self, request):
+        return 'Bearer realm="api"'

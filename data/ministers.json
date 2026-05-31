@@ -1,0 +1,272 @@
+[
+  {
+    "id": 1,
+    "name": "V. D. Satheesan",
+    "designation": "Chief Minister",
+    "departments": [
+      "Finance",
+      "National Savings",
+      "Stores Purchase",
+      "Commercial Taxes",
+      "Agricultural Income Tax",
+      "Treasuries",
+      "Lotteries",
+      "State Audit",
+      "Kerala State Financial Enterprises",
+      "State Insurance",
+      "Kerala Financial Corporation",
+      "Stamps and Stamp Duties",
+      "Ports",
+      "Law",
+      "Planning and Economic Affairs",
+      "General Administration",
+      "All India Services",
+      "Science and Technology",
+      "Disaster Management",
+      "Non-Resident Keralites Affairs",
+      "Pollution Control",
+      "Scientific Institutes",
+      "Personnel and Administrative Reforms",
+      "Election",
+      "Integration",
+      "Sainik Welfare",
+      "Distress Relief",
+      "State Hospitality",
+      "Administration of Civil and Criminal Justice",
+      "Airports",
+      "Metro Rail",
+      "Inter-State River Waters",
+      "Coastal Shipping and Inland Navigation",
+      "Kerala State Inland Navigation Corporation",
+      "Information and Public Relations"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Ramesh Chennithala",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Home",
+      "Vigilance",
+      "Fire and Rescue Services",
+      "Prisons",
+      "Coir"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Sunny Joseph",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Electricity",
+      "Environment",
+      "Parliamentary Affairs",
+      "ANERT"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "K. Muraleedharan",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Health",
+      "Medical Education",
+      "Medical University",
+      "Indigenous Medicine",
+      "Ayush",
+      "Drugs Control",
+      "Food Safety",
+      "Devaswoms"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "A. P. Anilkumar",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Land Revenue",
+      "Survey and Land Records",
+      "Land Reforms"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "P. C. Vishnunath",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Tourism",
+      "Culture",
+      "Kerala State Film Development Corporation (KSFDC)",
+      "Kerala Chalachithra Academy",
+      "Kerala Cultural Activist Welfare Fund Board"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "M. Liju",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Co-operation",
+      "Excise"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Roji M. John",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Collegiate Education",
+      "Technical Education",
+      "Universities (Except Agricultural, Veterinary, Fisheries, Medical and Digital Universities)",
+      "Entrance Examination",
+      "National Cadet Corps",
+      "Additional Skill Acquisition Programme (ASAP) Kerala"
+    ]
+  },
+  {
+    "id": 9,
+    "name": "T. Siddique",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Agriculture",
+      "Soil Survey and Soil Conservation",
+      "Kerala Agricultural University",
+      "Warehousing Corporation"
+    ]
+  },
+  {
+    "id": 10,
+    "name": "K. A. Thulasi",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Development of Scheduled Castes",
+      "Scheduled Tribes",
+      "Backward Classes"
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Bindhu Krishna",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Labour",
+      "Animal Husbandry",
+      "Dairy Development",
+      "Milk Co-operatives",
+      "Woman and Child Development",
+      "Kerala Veterinary and Animal Sciences University"
+    ]
+  },
+  {
+    "id": 12,
+    "name": "O. J. Janeesh",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Sports",
+      "Youth Affairs",
+      "Zoos",
+      "Museum",
+      "Registration",
+      "Archaeology",
+      "Archives"
+    ]
+  },
+  {
+    "id": 13,
+    "name": "P. K. Kunhalikutty",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Industries and Commerce",
+      "Information Technology",
+      "Artificial Intelligence",
+      "Start-ups",
+      "Mining and Geology",
+      "Handlooms and Textiles"
+    ]
+  },
+  {
+    "id": 14,
+    "name": "N. Samsudheen",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "General Education",
+      "Literacy Movement",
+      "Wakf and Haj Pilgrimage",
+      "Minority Welfare"
+    ]
+  },
+  {
+    "id": 15,
+    "name": "K. M. Shaji",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Panchayat",
+      "Municipality",
+      "Corporation",
+      "Town Planning",
+      "Rural Development",
+      "Regional Development Authorities",
+      "KILA"
+    ]
+  },
+  {
+    "id": 16,
+    "name": "P. K. Basheer",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Public Works Department"
+    ]
+  },
+  {
+    "id": 17,
+    "name": "V. E. Abdul Gafoor",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Fisheries",
+      "Harbour Engineering",
+      "Social Justice"
+    ]
+  },
+  {
+    "id": 18,
+    "name": "Mons Joseph",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Irrigation",
+      "Command Area Development Authority (CADA)",
+      "Ground Water Department",
+      "Water Supply and Sanitation",
+      "Housing"
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Anoop Jacob",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Food and Civil Supplies",
+      "Consumer Affairs",
+      "Legal Metrology"
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Shibu Baby John",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Forests and Wild Life Protection",
+      "Skill Development",
+      "Kerala Academy for Skills Excellence (KASE)"
+    ]
+  },
+  {
+    "id": 21,
+    "name": "C. P. John",
+    "designation": "Cabinet Minister",
+    "departments": [
+      "Road Transport",
+      "Motor Vehicles",
+      "Water Transport"
+    ]
+  }
+]

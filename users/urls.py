@@ -1,5 +1,6 @@
 from django.urls import path
 
+from users.views.department_views import DepartmentDetailView, DepartmentListCreateView
 from users.views.minister_views import (
     MinisterDetailView,
     MinisterFollowersView,
@@ -19,4 +20,6 @@ urlpatterns = [
     path("ministers/<int:minister_id>/", MinisterDetailView.as_view(), name="minister-detail"),
     path("ministers/<int:minister_id>/follow/", MinisterFollowView.as_view(), name="minister-follow"),
     path("ministers/<int:minister_id>/followers/", MinisterFollowersView.as_view(), name="minister-followers"),
+    path("departments/", DepartmentListCreateView.as_view(), name="department-list-create"),
+    path("departments/<int:department_id>/", DepartmentDetailView.as_view(), name="department-detail"),
 ]
