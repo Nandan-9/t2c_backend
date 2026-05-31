@@ -139,6 +139,29 @@ class PostDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class TrendingPostsView(APIView):
+    """
+    GET /posts/trending/  — top 20 published posts by upvote count
+    """
+
+    def get(self, request):
+        posts = post_service.get_trending_posts(limit=20)
+        data = PostSerializer(posts, many=True, context={"request": request}).data
+        return Response(data)
+
+class latestPostsView(APIView):
+
+
+    def get(self,request):
+
+        posts = 
+
+
+    
+
+
+
+
 class MinisterPostsView(APIView):
     """
     GET /posts/minister/<minister_id>/  — posts tagged to a specific minister

@@ -80,6 +80,16 @@ def get_posts_by_minister(minister):
     )
 
 
+def get_trending_posts(limit: int = 20):
+    return (
+        _annotated_qs()
+        .filter(status=Post.STATUS_PUBLISHED)
+        .order_by("-cached_upvote_count", "-created_at")[:limit]
+    )
+
+
+
+
 def is_within_edit_window(post: Post) -> bool:
     return (timezone.now() - post.created_at).total_seconds() <= POST_EDIT_WINDOW_SECONDS
 
