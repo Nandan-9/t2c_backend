@@ -2,7 +2,7 @@ import re
 
 from rest_framework import serializers
 
-from .models import Department, Minister, MinisterFollow, User
+from .models import Department, District, Minister, MinisterFollow, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -50,6 +50,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ["id", "name", "minister", "minister_id", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ["id", "name", "created_at"]
         read_only_fields = ["id", "created_at"]
 
 

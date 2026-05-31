@@ -25,12 +25,13 @@ def _annotated_qs():
     return Post.objects.annotate(
         upvote_count=Count("votes", filter=Q(votes__vote_type=Vote.UPVOTE)),
         downvote_count=Count("votes", filter=Q(votes__vote_type=Vote.DOWNVOTE)),
-    ).select_related("author", "minister", "department")
+    ).select_related("author", "minister", "department", "district")
 
 
 def create_post(author, data: dict) -> Post:
     department = data.get("department")
     minister = data.get("minister") or (department.minister if department else None)
+    district = data.get("district")
 
     post = Post(
         author=author,
@@ -38,6 +39,7 @@ def create_post(author, data: dict) -> Post:
         content=data["content"],
         department=department,
         minister=minister,
+        district=district,
         media_key=data.get("media_key"),
         media_type=data.get("media_type") or "",
     )

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-
+from users.models import District
 
 class Post(models.Model):
     MEDIA_TYPE_IMAGE = "image"
@@ -47,6 +47,13 @@ class Post(models.Model):
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default=STATUS_PUBLISHED, db_index=True
     )
+    district = models.ForeignKey(
+        District,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="posts",
+    )
     cached_upvote_count = models.IntegerField(default=0, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -56,7 +63,6 @@ class Post(models.Model):
 
     def __str__(self):
         return f"Post({self.id}) by {self.author.email}"
-
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")

@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from posts.serializers import PostDetailSerializer, PostSerializer
 from posts.services import post_service
-from users.models import Department, Minister
+from users.models import Department, District, Minister
 
 
 class FeedView(APIView):
@@ -68,6 +68,14 @@ class PostListCreateView(APIView):
             except Department.DoesNotExist:
                 return Response({"detail": "Department not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        district = None
+        district_id = serializer.validated_data.pop("district_id", None)
+        if district_id:
+            try:
+                district = District.objects.get(pk=district_id)
+            except District.DoesNotExist:
+                return Response({"detail": "District not found."}, status=status.HTTP_404_NOT_FOUND)
+
         post = post_service.create_post(
             request.user,
             {
@@ -75,6 +83,7 @@ class PostListCreateView(APIView):
                 "content": serializer.validated_data["content"],
                 "minister": minister,
                 "department": department,
+                "district": district,
                 "media_key": serializer.validated_data.get("media_key"),
                 "media_type": serializer.validated_data.get("media_type"),
             },
