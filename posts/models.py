@@ -31,6 +31,13 @@ class Post(models.Model):
         blank=True,
         related_name="tagged_posts",
     )
+    department = models.ForeignKey(
+        "users.Department",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="posts",
+    )
     heading = models.CharField(max_length=300)
     content = models.TextField()
     media_key = models.CharField(max_length=500, blank=True, null=True)
