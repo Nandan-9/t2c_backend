@@ -9,6 +9,7 @@ from posts.services.post_service import POST_EDIT_WINDOW_SECONDS
 class AuthorSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     username = serializers.CharField()
+    avatar_url = serializers.CharField()
 
 
 class MinisterTagSerializer(serializers.Serializer):
@@ -27,12 +28,39 @@ class DistrictTagSerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class _L3CommentSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
 
     class Meta:
         model = Comment
         fields = ["id", "author", "content", "created_at"]
+
+
+class _L2CommentSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+    replies = _L3CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ["id", "author", "content", "created_at", "replies"]
+
+
+class _L1CommentSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+    replies = _L2CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ["id", "author", "content", "created_at", "replies"]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+    replies = _L1CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ["id", "author", "content", "created_at", "replies"]
         read_only_fields = ["id", "created_at"]
 
 

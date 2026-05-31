@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from posts.models import Comment
 from posts.serializers import CommentSerializer
 from posts.services import comment_service, post_service
 
@@ -36,10 +37,23 @@ class CommentListCreateView(APIView):
         serializer = CommentSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        parent = None
+        parent_id = request.data.get("parent_id")
+        if parent_id:
+            try:
+                parent = Comment.objects.get(pk=parent_id, post=post)
+            except Comment.DoesNotExist:
+                return Response(
+                    {"detail": "Parent comment not found."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         comment = comment_service.create_comment(
             author=request.user,
             post=post,
             content=serializer.validated_data["content"],
+            parent=parent,
         )
         return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
 
@@ -53,7 +67,6 @@ class CommentDetailView(APIView):
 
     def delete(self, request, post_id, comment_id):
         try:
-            from posts.models import Comment
             comment = Comment.objects.select_related("author").get(pk=comment_id, post_id=post_id)
         except Exception:
             return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
