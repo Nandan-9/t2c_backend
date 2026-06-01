@@ -31,7 +31,7 @@ services:
       retries: 10
 
   web:
-    build: .
+    image: ${DOCKER_IMAGE:-YOUR_DOCKERHUB_USERNAME/t2c-backend:latest}
     restart: unless-stopped
     command: >
       uv run gunicorn core.wsgi:application
@@ -57,7 +57,7 @@ services:
         condition: service_healthy
 
   celery:
-    build: .
+    image: ${DOCKER_IMAGE:-YOUR_DOCKERHUB_USERNAME/t2c-backend:latest}
     restart: unless-stopped
     command: uv run celery -A core worker -Q celery,votes -l info
     env_file: .env
