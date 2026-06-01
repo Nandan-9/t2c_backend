@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # DB 1 (votes) requires noeviction + AOF persistence
+    command: >
+      redis-server
+      --maxmemory-policy noeviction
+      --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    command: >
+      uv run gunicorn core.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers 4
+      --worker-class sync
+      --timeout 120
+      --access-logfile -
+      --error-logfile -
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DB_HOST: db
+      REDIS_CACHE_URL: redis://redis:6379/0
+      REDIS_VOTES_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery:
+    build: .
+    restart: unless-stopped
+    command: uv run celery -A core worker -Q celery,votes -l info
+    env_file: .env
+    environment:
+      DB_HOST: db
+      REDIS_CACHE_URL: redis://redis:6379/0
+      REDIS_VOTES_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
