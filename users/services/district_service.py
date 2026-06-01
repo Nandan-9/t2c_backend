@@ -1,8 +1,19 @@
+from django.db.models import Count, Q
+
+from posts.models import Post
 from users.models import District
 
 
 def get_all_districts():
     return District.objects.order_by("name")
+
+
+def get_districts_post_count():
+    return (
+        District.objects
+        .annotate(post_count=Count("posts", filter=Q(posts__status=Post.STATUS_PUBLISHED)))
+        .order_by("-post_count", "name")
+    )
 
 
 def get_district_by_id(district_id: int):

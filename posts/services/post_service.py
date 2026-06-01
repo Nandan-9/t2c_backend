@@ -21,6 +21,10 @@ def _feed_cache_key(user_id: int, page: int) -> str:
     return f"feed:{user_id}:{page}"
 
 
+def _feed_cursor_cache_key(user_id: int, cursor_upvote_count, cursor_id) -> str:
+    return f"feed_cursor:{user_id}:{cursor_upvote_count}:{cursor_id}"
+
+
 def _annotated_qs():
     return Post.objects.annotate(
         upvote_count=Count("votes", filter=Q(votes__vote_type=Vote.UPVOTE)),
@@ -80,13 +84,35 @@ def get_posts_by_minister(minister):
     )
 
 
-def get_trending_posts(limit: int = 20):
-    return (
-        _annotated_qs()
-        .filter(status=Post.STATUS_PUBLISHED)
-        .order_by("-cached_upvote_count", "-created_at")[:limit]
-    )
+def get_posts_by_ministers(minister_ids: list, cursor_upvote_count=None, cursor_created_at=None, cursor_id=None, limit: int = 20):
+    qs = _annotated_qs().filter(minister_id__in=minister_ids, status=Post.STATUS_PUBLISHED)
+    if cursor_upvote_count is not None and cursor_created_at is not None and cursor_id is not None:
+        qs = qs.filter(
+            Q(cached_upvote_count__lt=cursor_upvote_count)
+            | Q(cached_upvote_count=cursor_upvote_count, created_at__lt=cursor_created_at)
+            | Q(cached_upvote_count=cursor_upvote_count, created_at=cursor_created_at, id__lt=cursor_id)
+        )
+    return qs.order_by("-cached_upvote_count", "-created_at", "-id")[:limit]
 
+
+def get_trending_posts(cursor_upvote_count=None, cursor_id=None, limit: int = 20):
+    qs = _annotated_qs().filter(status=Post.STATUS_PUBLISHED)
+    if cursor_upvote_count is not None and cursor_id is not None:
+        qs = qs.filter(
+            Q(cached_upvote_count__lt=cursor_upvote_count)
+            | Q(cached_upvote_count=cursor_upvote_count, id__lt=cursor_id)
+        )
+    return qs.order_by("-cached_upvote_count", "-id")[:limit]
+
+
+def get_latest_posts(cursor_created_at=None, cursor_id=None, limit: int = 20):
+    qs = _annotated_qs().filter(status=Post.STATUS_PUBLISHED)
+    if cursor_created_at and cursor_id:
+        qs = qs.filter(
+            Q(created_at__lt=cursor_created_at)
+            | Q(created_at=cursor_created_at, id__lt=cursor_id)
+        )
+    return qs.order_by("-created_at", "-id")[:limit]
 
 
 
@@ -100,10 +126,6 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
     if cached is not None:
         return cached
 
-    followed_ministers = list(
-        user.following_ministers.values_list("minister_id", flat=True)
-    )
-
     published_qs = _annotated_qs().filter(status=Post.STATUS_PUBLISHED)
 
     # Pool A: all published posts sorted by cached_upvote_count
@@ -111,13 +133,6 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
         published_qs
         .order_by("-cached_upvote_count")[:FEED_POOL_SIZE]
     )
-
-    # Pool B: published posts tagged to followed ministers sorted by cached_upvote_count
-    # pool_b = list(
-    #     published_qs
-    #     .filter(minister_id__in=followed_ministers)
-    #     .order_by("-cached_upvote_count", "-created_at")[:FEED_POOL_SIZE]
-    # ) if followed_ministers else []
     pool_b = []
 
     # Merge + deduplicate, preserving objects
@@ -128,9 +143,6 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
             seen_ids.add(post.id)
             merged.append(post)
 
-    # Seeded shuffle so same user gets consistent ordering per page number
-    # rng = random.Random(user.id + page * 9973)
-    # rng.shuffle(merged)
 
     # Paginate
     start = (page - 1) * page_size
@@ -150,6 +162,26 @@ def get_feed(user, page: int = 1, page_size: int = 20) -> dict:
     cache.set(cache_key, {"count": result["count"], "page": page, "page_size": page_size, "post_ids": id_list}, FEED_CACHE_TTL)
 
     return result
+
+
+def get_feed_cursor(user, cursor_upvote_count=None, cursor_id=None, limit: int = 20) -> list:
+    cache_key = _feed_cursor_cache_key(user.id, cursor_upvote_count, cursor_id)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        posts = list(_annotated_qs().filter(id__in=cached, status=Post.STATUS_PUBLISHED))
+        id_order = {pid: idx for idx, pid in enumerate(cached)}
+        posts.sort(key=lambda p: id_order.get(p.id, 0))
+        return posts
+
+    qs = _annotated_qs().filter(status=Post.STATUS_PUBLISHED)
+    if cursor_upvote_count is not None and cursor_id is not None:
+        qs = qs.filter(
+            Q(cached_upvote_count__lt=cursor_upvote_count)
+            | Q(cached_upvote_count=cursor_upvote_count, id__lt=cursor_id)
+        )
+    posts = list(qs.order_by("-cached_upvote_count", "-id")[:limit])
+    cache.set(cache_key, [p.id for p in posts], FEED_CACHE_TTL)
+    return posts
 
 
 def get_feed_from_cache_or_db(user, page: int = 1, page_size: int = 20) -> dict:

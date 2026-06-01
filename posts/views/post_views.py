@@ -10,24 +10,37 @@ from users.models import Department, District, Minister
 
 class FeedView(APIView):
     """
-    GET /posts/feed/?page=1
-    Returns a randomised interleave of:
-      - Pool A: all posts ranked by upvote count
-      - Pool B: posts tagged to ministers the user follows, ranked by upvote count
-    Response is cached in Redis for 120 s per user+page.
+    GET /posts/feed/                                              — first page
+    GET /posts/feed/?cursor_upvote_count=...&cursor_id=...       — next page
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        page = max(1, int(request.query_params.get("page", 1)))
-        feed = post_service.get_feed_from_cache_or_db(request.user, page=page)
-        serializer = PostSerializer(feed["results"], many=True, context={"request": request})
+        raw_upvote = request.query_params.get("cursor_upvote_count")
+        raw_id = request.query_params.get("cursor_id")
+
+        cursor_upvote_count = int(raw_upvote) if raw_upvote is not None else None
+        cursor_id = int(raw_id) if raw_id is not None else None
+
+        posts = post_service.get_feed_cursor(
+            request.user,
+            cursor_upvote_count=cursor_upvote_count,
+            cursor_id=cursor_id,
+        )
+
+        next_cursor_upvote_count = None
+        next_cursor_id = None
+        if posts:
+            last = posts[-1]
+            next_cursor_upvote_count = last.cached_upvote_count
+            next_cursor_id = last.id
+
+        data = PostSerializer(posts, many=True, context={"request": request}).data
         return Response({
-            "count": feed["count"],
-            "page": feed["page"],
-            "page_size": feed["page_size"],
-            "results": serializer.data,
+            "results": data,
+            "next_cursor_upvote_count": next_cursor_upvote_count,
+            "next_cursor_id": next_cursor_id,
         })
 
 
@@ -141,26 +154,69 @@ class PostDetailView(APIView):
 
 class TrendingPostsView(APIView):
     """
-    GET /posts/trending/  — top 20 published posts by upvote count
+    GET /posts/trending/                                          — first page (top 20 by upvotes)
+    GET /posts/trending/?cursor_upvote_count=...&cursor_id=...   — next page
     """
 
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        posts = post_service.get_trending_posts(limit=20)
+        raw_upvote = request.query_params.get("cursor_upvote_count")
+        raw_id = request.query_params.get("cursor_id")
+
+        cursor_upvote_count = int(raw_upvote) if raw_upvote is not None else None
+        cursor_id = int(raw_id) if raw_id is not None else None
+
+        posts = list(post_service.get_trending_posts(
+            cursor_upvote_count=cursor_upvote_count,
+            cursor_id=cursor_id,
+        ))
+
+        next_cursor_upvote_count = None
+        next_cursor_id = None
+        if posts:
+            last = posts[-1]
+            next_cursor_upvote_count = last.cached_upvote_count
+            next_cursor_id = last.id
+
         data = PostSerializer(posts, many=True, context={"request": request}).data
-        return Response(data)
-
-class latestPostsView(APIView):
-
-
-    def get(self,request):
-
-        posts = 
+        return Response({
+            "results": data,
+            "next_cursor_upvote_count": next_cursor_upvote_count,
+            "next_cursor_id": next_cursor_id,
+        })
 
 
-    
+class LatestPostsView(APIView):
+    """
+    GET /posts/latest/                                        — first page (newest 20)
+    GET /posts/latest/?cursor_created_at=...&cursor_id=...   — next page
+    """
 
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        cursor_created_at = request.query_params.get("cursor_created_at")
+        cursor_id = request.query_params.get("cursor_id")
 
+        posts = list(post_service.get_latest_posts(
+            cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
+        ))
+
+        next_cursor_created_at = None
+        next_cursor_id = None
+        if posts:
+            last = posts[-1]
+            next_cursor_created_at = last.created_at.isoformat()
+            next_cursor_id = last.id
+
+        data = PostSerializer(posts, many=True, context={"request": request}).data
+        return Response({
+            "results": data,
+            "next_cursor_created_at": next_cursor_created_at,
+            "next_cursor_id": next_cursor_id,
+        })
 
 class MinisterPostsView(APIView):
     """
@@ -178,3 +234,54 @@ class MinisterPostsView(APIView):
         posts = post_service.get_posts_by_minister(minister)
         data = PostSerializer(posts, many=True, context={"request": request}).data
         return Response(data)
+
+
+class MinistersBulkPostsView(APIView):
+    """
+    GET /posts/ministers/?ids=1,2,3
+    GET /posts/ministers/?ids=1,2,3&cursor_upvote_count=5&cursor_created_at=...&cursor_id=42
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        raw = request.query_params.get("ids", "")
+        try:
+            minister_ids = [int(i) for i in raw.split(",") if i.strip()]
+        except ValueError:
+            return Response({"detail": "ids must be a comma-separated list of integers."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not minister_ids:
+            return Response({"detail": "Provide at least one minister id via ?ids=1,2,3"}, status=status.HTTP_400_BAD_REQUEST)
+
+        raw_upvote = request.query_params.get("cursor_upvote_count")
+        raw_created_at = request.query_params.get("cursor_created_at")
+        raw_id = request.query_params.get("cursor_id")
+
+        cursor_upvote_count = int(raw_upvote) if raw_upvote is not None else None
+        cursor_created_at = raw_created_at if raw_created_at is not None else None
+        cursor_id = int(raw_id) if raw_id is not None else None
+
+        posts = list(post_service.get_posts_by_ministers(
+            minister_ids,
+            cursor_upvote_count=cursor_upvote_count,
+            cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
+        ))
+
+        next_cursor_upvote_count = None
+        next_cursor_created_at = None
+        next_cursor_id = None
+        if posts:
+            last = posts[-1]
+            next_cursor_upvote_count = last.cached_upvote_count
+            next_cursor_created_at = last.created_at.isoformat()
+            next_cursor_id = last.id
+
+        data = PostSerializer(posts, many=True, context={"request": request}).data
+        return Response({
+            "results": data,
+            "next_cursor_upvote_count": next_cursor_upvote_count,
+            "next_cursor_created_at": next_cursor_created_at,
+            "next_cursor_id": next_cursor_id,
+        })

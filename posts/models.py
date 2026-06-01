@@ -78,6 +78,30 @@ class Comment(models.Model):
         return f"Comment({self.id}) on Post({self.post_id}) by {self.author.email}"
 
 
+class ReportIssue(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PostReport(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="post_reports"
+    )
+    issue = models.ForeignKey(ReportIssue, on_delete=models.PROTECT, related_name="reports")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("post", "reporter")
+
+    def __str__(self):
+        return f"Report on Post({self.post_id}) by {self.reporter.email} — {self.issue.name}"
+
+
 class Vote(models.Model):
     UPVOTE = "upvote"
     DOWNVOTE = "downvote"

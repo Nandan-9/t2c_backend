@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from posts.models import Comment, Post, Vote
+from posts.models import Comment, Post, PostReport, ReportIssue, Vote
 from posts.services.media_service import get_public_url
 from posts.services.post_service import POST_EDIT_WINDOW_SECONDS
 
@@ -144,3 +144,59 @@ class PostDetailSerializer(PostSerializer):
 
     class Meta(PostSerializer.Meta):
         fields = PostSerializer.Meta.fields + ["comments"]
+
+
+class ReportIssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportIssue
+        fields = ["id", "name", "description"]
+
+
+class PostReportSerializer(serializers.ModelSerializer):
+    issue_id = serializers.PrimaryKeyRelatedField(
+        queryset=ReportIssue.objects.all(), source="issue", write_only=True
+    )
+    issue = ReportIssueSerializer(read_only=True)
+
+    class Meta:
+        model = PostReport
+        fields = ["id", "issue_id", "issue", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+
+class AdminPostReportSerializer(serializers.ModelSerializer):
+    issue = ReportIssueSerializer(read_only=True)
+    reporter = AuthorSerializer(read_only=True)
+    post = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PostReport
+        fields = ["id", "post", "reporter", "issue", "created_at"]
+
+    def get_post(self, obj):
+        return {
+            "id": obj.post_id,
+            "heading": obj.post.heading,
+            "author": {
+                "id": obj.post.author_id,
+                "username": obj.post.author.username,
+            },
+        }
+
+
+class AdminReportedPostSerializer(serializers.Serializer):
+    post_id = serializers.IntegerField()
+    heading = serializers.CharField()
+    author = serializers.SerializerMethodField()
+    report_count = serializers.IntegerField()
+    issues = serializers.SerializerMethodField()
+    last_reported_at = serializers.DateTimeField()
+
+    def get_author(self, obj):
+        return {
+            "id": obj["post__author__id"],
+            "username": obj["post__author__username"],
+        }
+
+    def get_issues(self, obj):
+        return obj.get("issues", [])

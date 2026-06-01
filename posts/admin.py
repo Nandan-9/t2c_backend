@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count, Q
 
-from .models import Comment, Post, Vote
+from .models import Comment, Post, PostReport, ReportIssue, Vote
 
 
 @admin.register(Post)
@@ -47,6 +47,28 @@ class CommentAdmin(admin.ModelAdmin):
     @admin.display(description="Content")
     def content_preview(self, obj):
         return obj.content[:80]
+
+
+@admin.register(ReportIssue)
+class ReportIssueAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "description", "created_at")
+    search_fields = ("name",)
+    ordering = ("name",)
+
+
+@admin.register(PostReport)
+class PostReportAdmin(admin.ModelAdmin):
+    list_display = ("id", "post", "reporter", "issue", "created_at")
+    list_filter = ("issue",)
+    search_fields = ("reporter__email", "post__id")
+    readonly_fields = ("post", "reporter", "issue", "created_at")
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Vote)

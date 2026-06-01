@@ -1,8 +1,19 @@
+from django.db.models import Count, Q
+
+from posts.models import Post
 from users.models import Department, Minister
 
 
 def get_all_departments():
     return Department.objects.select_related("minister").order_by("name")
+
+
+def get_top_departments():
+    return (
+        Department.objects
+        .annotate(post_count=Count("posts", filter=Q(posts__status=Post.STATUS_PUBLISHED)))
+        .order_by("-post_count", "name")
+    )
 
 
 def get_department_by_id(department_id: int):

@@ -1,3 +1,4 @@
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -5,6 +6,25 @@ from rest_framework.views import APIView
 
 from users.serializers import DepartmentSerializer
 from users.services import department_service
+
+
+class _TopDepartmentSerializer(drf_serializers.Serializer):
+    id = drf_serializers.IntegerField()
+    name = drf_serializers.CharField()
+    post_count = drf_serializers.IntegerField()
+
+
+class TopDepartmentsView(APIView):
+    """
+    GET /users/departments/top/  — departments ranked by published post count (min 6 returned)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        departments = department_service.get_top_departments()
+        data = _TopDepartmentSerializer(departments, many=True).data
+        return Response(data)
 
 
 class DepartmentListCreateView(APIView):
