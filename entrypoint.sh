@@ -19,6 +19,9 @@ echo "PostgreSQL is ready."
 
 uv run python manage.py migrate --noinput
 
+uv run python manage.py load_districts
+uv run python manage.py load_ministers
+
 # Create superuser if credentials are provided and the user doesn't already exist
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
   uv run python manage.py createsuperuser \
