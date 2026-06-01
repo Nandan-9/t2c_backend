@@ -19,4 +19,13 @@ echo "PostgreSQL is ready."
 
 uv run python manage.py migrate --noinput
 
+# Create superuser if credentials are provided and the user doesn't already exist
+if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
+  uv run python manage.py createsuperuser \
+    --noinput \
+    --username "$DJANGO_SUPERUSER_USERNAME" \
+    --email "${DJANGO_SUPERUSER_EMAIL:-admin@example.com}" \
+    2>/dev/null || true
+fi
+
 exec "$@"
