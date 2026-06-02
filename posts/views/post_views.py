@@ -65,21 +65,15 @@ class PostListCreateView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        minister = None
-        minister_id = serializer.validated_data.pop("minister_id", None)
-        if minister_id:
-            try:
-                minister = Minister.objects.get(pk=minister_id)
-            except Minister.DoesNotExist:
-                return Response({"detail": "Minister not found."}, status=status.HTTP_404_NOT_FOUND)
+        minister_ids = serializer.validated_data.pop("minister_ids", [])
+        ministers = list(Minister.objects.filter(pk__in=minister_ids))
+        if len(ministers) != len(set(minister_ids)):
+            return Response({"detail": "One or more ministers not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        department = None
-        department_id = serializer.validated_data.pop("department_id", None)
-        if department_id:
-            try:
-                department = Department.objects.get(pk=department_id)
-            except Department.DoesNotExist:
-                return Response({"detail": "Department not found."}, status=status.HTTP_404_NOT_FOUND)
+        department_ids = serializer.validated_data.pop("department_ids", [])
+        departments = list(Department.objects.filter(pk__in=department_ids))
+        if len(departments) != len(set(department_ids)):
+            return Response({"detail": "One or more departments not found."}, status=status.HTTP_404_NOT_FOUND)
 
         district = None
         district_id = serializer.validated_data.pop("district_id", None)
@@ -94,8 +88,8 @@ class PostListCreateView(APIView):
             {
                 "heading": serializer.validated_data["heading"],
                 "content": serializer.validated_data["content"],
-                "minister": minister,
-                "department": department,
+                "ministers": ministers,
+                "departments": departments,
                 "district": district,
                 "media_key": serializer.validated_data.get("media_key"),
                 "media_type": serializer.validated_data.get("media_type"),

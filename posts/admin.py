@@ -6,11 +6,11 @@ from .models import Comment, Post, PostReport, ReportIssue, Vote
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("id", "author", "minister_tag", "content_preview", "upvote_count", "downvote_count", "created_at")
-    list_filter = ("minister",)
-    search_fields = ("author__email", "minister__tag", "content")
+    list_display = ("id", "author", "minister_tags", "content_preview", "upvote_count", "downvote_count", "created_at")
+    list_filter = ("ministers",)
+    search_fields = ("author__email", "ministers__tag", "content")
     readonly_fields = ("cached_upvote_count", "created_at", "updated_at")
-    raw_id_fields = ("author", "minister")
+    raw_id_fields = ("author",)
     ordering = ("-created_at",)
 
     def get_queryset(self, request):
@@ -19,9 +19,9 @@ class PostAdmin(admin.ModelAdmin):
             _downvotes=Count("votes", filter=Q(votes__vote_type=Vote.DOWNVOTE)),
         )
 
-    @admin.display(description="Minister Tag")
-    def minister_tag(self, obj):
-        return obj.minister.tag if obj.minister else "—"
+    @admin.display(description="Ministers")
+    def minister_tags(self, obj):
+        return ", ".join(m.tag for m in obj.ministers.all()) or "—"
 
     @admin.display(description="Content")
     def content_preview(self, obj):

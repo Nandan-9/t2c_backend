@@ -66,10 +66,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
-    minister = MinisterTagSerializer(read_only=True)
-    minister_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    department = DepartmentTagSerializer(read_only=True)
-    department_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    ministers = MinisterTagSerializer(many=True, read_only=True)
+    minister_ids = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False, default=list
+    )
+    departments = DepartmentTagSerializer(many=True, read_only=True)
+    department_ids = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False, default=list
+    )
     district = DistrictTagSerializer(read_only=True)
     district_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     media_key = serializers.CharField(required=False, allow_null=True)
@@ -83,12 +87,12 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            "id", "author", "minister", "minister_id", "department", "department_id",
+            "id", "author", "ministers", "minister_ids", "departments", "department_ids",
             "district", "district_id",
             "heading", "content", "status",
             "media_url", "media_type", "media_key",
             "upvote_count", "downvote_count", "user_vote",
-            "can_edit", "created_at", "updated_at","comment_count"
+            "can_edit", "created_at", "updated_at", "comment_count"
         ]
         read_only_fields = ["id", "media_url", "created_at", "updated_at"]
 

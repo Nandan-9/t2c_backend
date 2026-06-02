@@ -11,7 +11,7 @@ def get_all_departments():
 def get_top_departments():
     return (
         Department.objects
-        .annotate(post_count=Count("posts", filter=Q(posts__status=Post.STATUS_PUBLISHED)))
+        .annotate(post_count=Count("tagged_posts", filter=Q(tagged_posts__status=Post.STATUS_PUBLISHED)))
         .order_by("-post_count", "name")
     )
 

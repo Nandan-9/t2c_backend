@@ -24,19 +24,15 @@ class Post(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts"
     )
-    minister = models.ForeignKey(
+    ministers = models.ManyToManyField(
         "users.Minister",
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name="tagged_posts",
     )
-    department = models.ForeignKey(
+    departments = models.ManyToManyField(
         "users.Department",
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
-        related_name="posts",
+        related_name="tagged_posts",
     )
     heading = models.CharField(max_length=300)
     content = models.TextField()

@@ -29,26 +29,26 @@ def _annotated_qs():
     return Post.objects.annotate(
         upvote_count=Count("votes", filter=Q(votes__vote_type=Vote.UPVOTE)),
         downvote_count=Count("votes", filter=Q(votes__vote_type=Vote.DOWNVOTE)),
-    ).select_related("author", "minister", "department", "district")
+    ).select_related("author", "district").prefetch_related("ministers", "departments")
 
 
 def create_post(author, data: dict) -> Post:
-    department = data.get("department")
-    minister = data.get("minister") or (department.minister if department else None)
+    departments = data.get("departments") or []
+    ministers = data.get("ministers") or list({d.minister for d in departments if d.minister})
     district = data.get("district")
 
     post = Post(
         author=author,
         heading=data["heading"],
         content=data["content"],
-        department=department,
-        minister=minister,
         district=district,
         media_key=data.get("media_key"),
         media_type=data.get("media_type") or "",
     )
     post.full_clean()
     post.save()
+    post.ministers.set(ministers)
+    post.departments.set(departments)
     _invalidate_feed_cache(author.id)
     return post
 
@@ -79,13 +79,13 @@ def get_all_posts():
 def get_posts_by_minister(minister):
     return (
         _annotated_qs()
-        .filter(minister=minister, status=Post.STATUS_PUBLISHED)
+        .filter(ministers=minister, status=Post.STATUS_PUBLISHED)
         .order_by("-created_at")
     )
 
 
 def get_posts_by_ministers(minister_ids: list, cursor_upvote_count=None, cursor_created_at=None, cursor_id=None, limit: int = 20):
-    qs = _annotated_qs().filter(minister_id__in=minister_ids, status=Post.STATUS_PUBLISHED)
+    qs = _annotated_qs().filter(ministers__id__in=minister_ids, status=Post.STATUS_PUBLISHED).distinct()
     if cursor_upvote_count is not None and cursor_created_at is not None and cursor_id is not None:
         qs = qs.filter(
             Q(cached_upvote_count__lt=cursor_upvote_count)
