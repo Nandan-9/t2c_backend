@@ -75,6 +75,7 @@ class PostSerializer(serializers.ModelSerializer):
     media_key = serializers.CharField(required=False, allow_null=True)
     media_url = serializers.SerializerMethodField()
     upvote_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
     downvote_count = serializers.SerializerMethodField()
     user_vote = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
@@ -87,7 +88,7 @@ class PostSerializer(serializers.ModelSerializer):
             "heading", "content", "status",
             "media_url", "media_type", "media_key",
             "upvote_count", "downvote_count", "user_vote",
-            "can_edit", "created_at", "updated_at",
+            "can_edit", "created_at", "updated_at","comment_count"
         ]
         read_only_fields = ["id", "media_url", "created_at", "updated_at"]
 
@@ -112,6 +113,11 @@ class PostSerializer(serializers.ModelSerializer):
         if obj.media_key:
             return get_public_url(obj.media_key)
         return None
+    
+    def get_comment_count(self,obj):
+        if hasattr(obj,"comment_count"):
+            return obj.comment_count
+        return obj.comments.filter(post_id=obj.id).count()
 
     def get_upvote_count(self, obj):
         if hasattr(obj, "upvote_count"):
