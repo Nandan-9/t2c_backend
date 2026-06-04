@@ -128,8 +128,29 @@ class PostDetailView(APIView):
         serializer = PostSerializer(post, data=request.data, partial=True, context={"request": request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        update_data = dict(serializer.validated_data)
+
+        if "minister_ids" in request.data:
+            minister_ids = update_data.pop("minister_ids", [])
+            ministers = list(Minister.objects.filter(pk__in=minister_ids))
+            if len(ministers) != len(set(minister_ids)):
+                return Response({"detail": "One or more ministers not found."}, status=status.HTTP_404_NOT_FOUND)
+            update_data["ministers"] = ministers
+        else:
+            update_data.pop("minister_ids", None)
+
+        if "department_ids" in request.data:
+            department_ids = update_data.pop("department_ids", [])
+            departments = list(Department.objects.filter(pk__in=department_ids))
+            if len(departments) != len(set(department_ids)):
+                return Response({"detail": "One or more departments not found."}, status=status.HTTP_404_NOT_FOUND)
+            update_data["departments"] = departments
+        else:
+            update_data.pop("department_ids", None)
+
         try:
-            updated = post_service.update_post(post, serializer.validated_data)
+            updated = post_service.update_post(post, update_data)
         except PermissionError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_403_FORBIDDEN)
         except ValueError as exc:

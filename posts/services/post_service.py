@@ -228,6 +228,12 @@ def update_post(post: Post, data: dict) -> Post:
 
     post.full_clean()
     post.save(update_fields=update_fields)
+
+    if "ministers" in data:
+        post.ministers.set(data["ministers"])
+    if "departments" in data:
+        post.departments.set(data["departments"])
+
     _invalidate_feed_cache(post.author_id)
     return post
 
