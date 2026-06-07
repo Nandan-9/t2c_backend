@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,7 +14,10 @@ class CommentListCreateView(APIView):
     POST /posts/<post_id>/comments/  — add a comment
     """
 
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def _get_post_or_404(self, post_id):
         post = post_service.get_post_by_id(post_id)

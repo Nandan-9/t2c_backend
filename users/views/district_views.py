@@ -1,6 +1,6 @@
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,7 +19,7 @@ class DistrictPostCountView(APIView):
     GET /users/districts/post-count/  — all districts with their published post count
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         districts = district_service.get_districts_post_count()
@@ -30,7 +30,7 @@ class DistrictListCreateView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     def get(self, request):
         districts = district_service.get_all_districts()
@@ -49,7 +49,7 @@ class DistrictListCreateView(APIView):
 class DistrictDetailView(APIView):
     def get_permissions(self):
         if self.request.method == "GET":
-            return [IsAuthenticated()]
+            return [AllowAny()]
         return [IsAdminUser()]
 
     def _get_or_404(self, district_id):

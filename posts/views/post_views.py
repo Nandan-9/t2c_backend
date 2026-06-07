@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,7 +14,7 @@ class FeedView(APIView):
     GET /posts/feed/?cursor_upvote_count=...&cursor_id=...       — next page
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         raw_upvote = request.query_params.get("cursor_upvote_count")
@@ -105,7 +105,10 @@ class PostDetailView(APIView):
     DELETE /posts/<post_id>/  — delete (author or admin)
     """
 
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def _get_or_404(self, post_id, viewer=None):
         post = post_service.get_post_by_id(post_id, viewer=viewer)
@@ -173,7 +176,7 @@ class TrendingPostsView(APIView):
     GET /posts/trending/?cursor_upvote_count=...&cursor_id=...   — next page
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         raw_upvote = request.query_params.get("cursor_upvote_count")
@@ -208,7 +211,7 @@ class LatestPostsView(APIView):
     GET /posts/latest/?cursor_created_at=...&cursor_id=...   — next page
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         cursor_created_at = request.query_params.get("cursor_created_at")

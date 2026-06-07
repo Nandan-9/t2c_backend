@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,7 +17,7 @@ class MinisterListCreateView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     def get(self, request):
         ministers = minister_service.get_all_ministers()
@@ -45,7 +45,7 @@ class MinisterDetailView(APIView):
     def get_permissions(self):
         if self.request.method in ("PATCH", "DELETE"):
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     def _get_minister_or_404(self, minister_id):
         minister = minister_service.get_minister_by_id(minister_id)
@@ -117,10 +117,10 @@ class MinisterFollowView(APIView):
 
 class MinisterFollowersView(APIView):
     """
-    GET /users/ministers/<id>/followers/   — list all followers of a minister (admin only)
+    GET /users/ministers/<id>/followers/   — list all followers of a minister
     """
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
 
     def get(self, request, minister_id):
         minister = minister_service.get_minister_by_id(minister_id)
@@ -164,7 +164,7 @@ class MinisterTagSearchView(APIView):
     The cache is automatically invalidated when any minister is created, updated, or deleted.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     MIN_QUERY_LENGTH = 2
 

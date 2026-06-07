@@ -1,6 +1,6 @@
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,7 +19,7 @@ class TopDepartmentsView(APIView):
     GET /users/departments/top/  — departments ranked by published post count (min 6 returned)
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         departments = department_service.get_top_departments()
@@ -31,7 +31,7 @@ class DepartmentListCreateView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     def get(self, request):
         departments = department_service.get_all_departments()
