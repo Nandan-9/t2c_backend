@@ -12,6 +12,7 @@ from rest_framework import status
 from core.tokens import create_access_token, create_refresh_token
 from .models import RefreshToken
 from .services import admin_auth_service
+from .services.user_register_services import get_profile_avatar_link
 
 User = get_user_model()
 
@@ -84,7 +85,6 @@ class GoogleOAuthView(APIView):
         profile = userinfo_response.json()
         email = profile.get("email")
         name = profile.get("name", "")
-        picture = profile.get("picture", "")
 
         if not email:
             return Response(
@@ -102,13 +102,8 @@ class GoogleOAuthView(APIView):
 
         user, created = User.objects.get_or_create(
             email=email,
-            defaults={"username": username, "avatar_url": picture},
+            defaults={"username": username, "avatar_url": get_profile_avatar_link()},
         )
-
-        # Update avatar if it changed
-        if picture and user.avatar_url != picture:
-            user.avatar_url = picture
-            user.save(update_fields=["avatar_url"])
 
         access_token = create_access_token(user)
         refresh_token = create_refresh_token(user)
