@@ -109,6 +109,12 @@ JWT_REFRESH_TOKEN_LIFETIME_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://backend.keralamspeaks.com",
+    "https://keralamspeaks.com",
+    "https://www.keralamspeaks.com",
+]
+
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
