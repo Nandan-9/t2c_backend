@@ -76,6 +76,10 @@ def get_all_posts():
     return _annotated_qs().exclude(status=Post.STATUS_DELETED).order_by("-created_at")
 
 
+def get_posts_by_user(user):
+    return _annotated_qs().filter(author=user).exclude(status=Post.STATUS_DELETED).order_by("-created_at")
+
+
 def get_posts_by_minister(minister):
     return (
         _annotated_qs()

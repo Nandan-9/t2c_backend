@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from posts.models import Comment, Post, PostReport, ReportIssue, Vote
+from posts.models import Comment, Post, PostReport, ReportIssue, Vote, SavedPost
 from posts.services.media_service import get_public_url
 from posts.services.post_service import POST_EDIT_WINDOW_SECONDS
 
@@ -83,6 +83,7 @@ class PostSerializer(serializers.ModelSerializer):
     downvote_count = serializers.SerializerMethodField()
     user_vote = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    user_saved = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -92,7 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
             "heading", "content", "status",
             "media_url", "media_type", "media_key",
             "upvote_count", "downvote_count", "user_vote",
-            "can_edit", "created_at", "updated_at", "comment_count"
+            "can_edit", "user_saved", "created_at", "updated_at", "comment_count"
         ]
         read_only_fields = ["id", "media_url", "created_at", "updated_at"]
 
@@ -139,6 +140,12 @@ class PostSerializer(serializers.ModelSerializer):
             return None
         vote = obj.votes.filter(user=request.user).first()
         return vote.vote_type if vote else None
+
+    def get_user_saved(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        return SavedPost.objects.filter(user=request.user, post=obj).exists()
 
     def get_can_edit(self, obj):
         request = self.context.get("request")
@@ -210,3 +217,20 @@ class AdminReportedPostSerializer(serializers.Serializer):
 
     def get_issues(self, obj):
         return obj.get("issues", [])
+
+
+
+
+
+class SavePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedPost
+        fields = ["post", "user"]
+
+    def validate(self, attrs):
+        if SavedPost.objects.filter(user=attrs["user"], post=attrs["post"]).exists():
+            raise serializers.ValidationError("Post already saved.")
+        return attrs
+
+    def create(self, validated_data):
+        return SavedPost.objects.create(**validated_data)

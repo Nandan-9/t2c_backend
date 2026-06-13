@@ -126,7 +126,7 @@ class PostDetailView(APIView):
         post, err = self._get_or_404(post_id, viewer=request.user)
         if err:
             return err
-        if post.author != request.user:
+        if post.author != request.user: 
             return Response({"detail": "You can only edit your own posts."}, status=status.HTTP_403_FORBIDDEN)
         serializer = PostSerializer(post, data=request.data, partial=True, context={"request": request})
         if not serializer.is_valid():
@@ -168,6 +168,15 @@ class PostDetailView(APIView):
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
         post_service.delete_post(post)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyPostsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        posts = post_service.get_posts_by_user(request.user)
+        data = PostSerializer(posts, many=True, context={"request": request}).data
+        return Response(data)
 
 
 class TrendingPostsView(APIView):
