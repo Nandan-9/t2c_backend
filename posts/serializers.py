@@ -116,6 +116,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_media_url(self, obj):
         if obj.media_key:
+            print(get_public_url(obj.media_key))
             return get_public_url(obj.media_key)
         return None
     

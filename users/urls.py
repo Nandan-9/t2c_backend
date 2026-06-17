@@ -10,10 +10,12 @@ from users.views.minister_views import (
     MinisterTagSearchView,
     MyFollowingView,
 )
-from users.views.user_views import UserMeView, UsernameCheckView
+from users.views.user_views import AvatarUploadUrlView, EditProfilePhotoView, UserMeView, UsernameCheckView
 
 urlpatterns = [
     path("me/", UserMeView.as_view(), name="user-me"),
+    path("me/avatar/upload-url/", AvatarUploadUrlView.as_view(), name="avatar-upload-url"),
+    path("me/avatar/", EditProfilePhotoView.as_view(), name="edit-profile-photo"),
     path("me/username/check/", UsernameCheckView.as_view(), name="username-check"),
     path("me/following/", MyFollowingView.as_view(), name="my-following"),
     path("ministers/tags/", MinisterTagSearchView.as_view(), name="minister-tags"),

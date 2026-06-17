@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from users.serializers import UserSerializer
+from users.services.user_services import get_avatar_upload_url, get_public_url
 
 User = get_user_model()
 
@@ -33,3 +34,29 @@ class UsernameCheckView(APIView):
             return Response({"detail": "username query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
         available = not User.objects.filter(username__iexact=username).exists()
         return Response({"available": available})
+
+
+
+
+
+class AvatarUploadUrlView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        content_type = request.data.get("content_type")
+        result = get_avatar_upload_url(content_type)
+        return Response(result)
+
+
+class EditProfilePhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        key = request.data.get("key")
+        if not key:
+            return Response({"message": "key is required"}, status=status.HTTP_400_BAD_REQUEST)
+        public_url = get_public_url(key)
+        print(public_url)
+        request.user.avatar_url = public_url
+        request.user.save(update_fields=["avatar_url"])
+        return Response({"avatar_url": public_url})
